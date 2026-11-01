@@ -12,7 +12,7 @@ Our implementation focus is the **Linear Threshold Model (LTM)** for influence d
 | [Daily startup](docs/DAILY-STARTUP.md) | Start/stop Hadoop and run jobs |
 | [Setup](setup/) | Fresh-machine Hadoop/Giraph installation guides |
 | [Datasets](datasets/) / [results](results/) | Inputs and saved outputs |
-| [Weekly reports](weekly-reports/) | Chronology of work |
+| [Weekly reports](weekly-reports/) | Chronology of work — update whenever a task finishes |
 
 ## Team (Group B)
 
