@@ -17,9 +17,9 @@ This document describes **Group B’s actual machine**, not the lab shared serve
 | HDFS local dirs | `/home/amani/hadoopdata/hdfs/{namenode,datanode}` |
 | Small LTM graph (also in repo) | `/home/amani/ltm/graph.txt` |
 
-Cursor / the coding agent reaches the same files via:
+From Windows we reach the same Linux files via:
 
-- `wsl -d Ubuntu -e bash -lc "..."` from Windows PowerShell
+- `wsl -d Ubuntu -e bash -lc "..."` from PowerShell
 - UNC path `\\wsl$\Ubuntu\home\amani\...` when the distro is running
 
 If `wsl` returns `Wsl/Service/E_UNEXPECTED`, run `wsl --shutdown`, wait a few seconds, then open Ubuntu again.
@@ -103,13 +103,4 @@ We do **not** need sudo passwords for normal Giraph job runs. Sudo is only neede
 If a future step needs:
 
 - GitHub auth failure → run `gh auth login` on Windows
-- Hadoop web UI / SSH to another machine → tell the agent; do **not** paste passwords into the repository
-
-## Agent working agreement
-
-When the coding agent helps:
-
-1. Prefer `wsl -d Ubuntu -e bash -lc "..."` for build/run checks
-2. Keep secrets out of commits
-3. Update `D:\LTM` files that belong in GitHub
-4. Leave Graph Burning experiments in Group A’s repo; keep this repo on LTM + shared foundations
+- Do **not** paste passwords, private keys, or tokens into the repository

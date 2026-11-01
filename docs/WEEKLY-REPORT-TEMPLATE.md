@@ -2,7 +2,7 @@
 
 **Week number:**  
 **Dates:**  
-**Group:**  
+**Group:** B (LTM)  
 **Members present:**  
 **Supervisor meeting:** Thursday, 9:00 AM, supervisor's chamber  
 **Report status:** Draft / Reviewed / Final
@@ -27,7 +27,7 @@ Write the goal agreed during the previous meeting in one or two precise sentence
 
 ## 3. Work completed
 
-Describe the actual work. Separate Group A, Group B, and shared work when applicable.
+Describe the actual work for Group B (LTM). Separate shared foundation work from LTM-specific work when needed.
 
 ## 4. Technical evidence
 
@@ -53,9 +53,7 @@ Explain what the result means. Do not paste output without interpreting it.
 
 | Member | Contribution | Evidence |
 |---|---|---|
-| Kumar Shivam | | |
-| Archana Kumari | | |
-| Aman Chaudhary | | |
+| Aman Choudhary | | |
 | Suyash Singh | | |
 
 ## 8. Supervisor feedback
