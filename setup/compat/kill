@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Hadoop 2.7.7 calls `kill -SIGNAL -PROCESS_GROUP` without `--`.
+# On Ubuntu 22.04's util-linux kill, that can target the caller's group.
+# Only fix Hadoop's two-argument process-group form; leave other calls alone.
+if [[ $# -eq 2 && "$1" =~ ^-[0-9]+$ && "$2" =~ ^-[0-9]+$ ]]; then
+  exec /usr/bin/kill "$1" -- "$2"
+fi
+exec /usr/bin/kill "$@"

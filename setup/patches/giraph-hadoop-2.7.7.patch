@@ -1,0 +1,36 @@
+diff --git a/giraph-examples/pom.xml b/giraph-examples/pom.xml
+index 470c742..d731163 100644
+--- a/giraph-examples/pom.xml
++++ b/giraph-examples/pom.xml
+@@ -45,6 +45,31 @@ under the License.
+         <groupId>org.apache.maven.plugins</groupId>
+         <artifactId>maven-assembly-plugin</artifactId>      
+       </plugin>      
++      <plugin>
++        <groupId>org.apache.maven.plugins</groupId>
++        <artifactId>maven-shade-plugin</artifactId>
++        <version>3.2.4</version>
++        <executions>
++          <execution>
++            <id>shade-guava-for-hadoop</id>
++            <phase>package</phase>
++            <goals>
++              <goal>shade</goal>
++            </goals>
++            <configuration>
++              <shadedArtifactAttached>true</shadedArtifactAttached>
++              <shadedClassifierName>hadoop-guava-shaded</shadedClassifierName>
++              <createDependencyReducedPom>false</createDependencyReducedPom>
++              <relocations>
++                <relocation>
++                  <pattern>com.google.common</pattern>
++                  <shadedPattern>org.apache.giraph.shaded.com.google.common</shadedPattern>
++                </relocation>
++              </relocations>
++            </configuration>
++          </execution>
++        </executions>
++      </plugin>
+       <plugin>
+         <groupId>org.apache.maven.plugins</groupId>
+         <artifactId>maven-checkstyle-plugin</artifactId>

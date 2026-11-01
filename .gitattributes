@@ -1,0 +1,2 @@
+setup/compat/kill text eol=lf
+setup/single-account/*.sh text eol=lf

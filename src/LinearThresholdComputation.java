@@ -1,0 +1,93 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.apache.giraph.examples;
+
+import java.io.IOException;
+
+import org.apache.giraph.edge.Edge;
+import org.apache.giraph.graph.BasicComputation;
+import org.apache.giraph.graph.Vertex;
+import org.apache.hadoop.io.DoubleWritable;
+import org.apache.hadoop.io.FloatWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+
+/**
+ * Implements the Linear Threshold Model for graph influence propagation.
+ */
+public class LinearThresholdComputation extends
+    BasicComputation<LongWritable, DoubleWritable, FloatWritable, Text> {
+
+  /** Activation threshold for each vertex. */
+  private static final double THRESHOLD = 0.5;
+
+  /** ID of the initially active vertex. */
+  private static final long SOURCE_ID = 1L;
+
+  @Override
+  public void compute(
+      Vertex<LongWritable, DoubleWritable, FloatWritable> vertex,
+      Iterable<Text> messages) throws IOException {
+
+    if (getSuperstep() == 0) {
+      boolean active = vertex.getId().get() == SOURCE_ID;
+      vertex.setValue(new DoubleWritable(active ? 1.0 : 0.0));
+
+      if (active) {
+        sendInfluence(vertex);
+      }
+
+      vertex.voteToHalt();
+      return;
+    }
+
+    if (vertex.getValue().get() == 1.0) {
+      vertex.voteToHalt();
+      return;
+    }
+
+    double influence = 0.0;
+
+    for (Text message : messages) {
+      influence += Double.parseDouble(message.toString());
+    }
+
+    if (influence >= THRESHOLD) {
+      vertex.setValue(new DoubleWritable(1.0));
+      sendInfluence(vertex);
+    }
+
+    vertex.voteToHalt();
+  }
+
+  /**
+   * Sends edge influence weights to neighboring vertices.
+   *
+   * @param vertex active vertex sending influence
+   */
+  private void sendInfluence(
+      Vertex<LongWritable, DoubleWritable, FloatWritable> vertex) {
+
+    for (Edge<LongWritable, FloatWritable> edge : vertex.getEdges()) {
+      sendMessage(
+          edge.getTargetVertexId(),
+          new Text(Double.toString(edge.getValue().get())));
+    }
+  }
+}
