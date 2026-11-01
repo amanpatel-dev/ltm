@@ -32,6 +32,9 @@ Thumbs.db
 # Local clone used only for comparison; not part of this project
 _reference_repo/
 
+# Local rendered scans of faculty PDF (not for GitHub)
+_paper_pages/
+
 # Python-generated cache
 __pycache__/
 *.pyc
