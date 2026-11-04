@@ -1,6 +1,6 @@
-# Faculty brief — Group B Linear Threshold Model (LTM) on Apache Giraph
+# LTM execution notes
 
-Use this note when explaining the implementation to **Dr. Anjeneya Swami Kare**. It maps theory → code → demo files.
+Group B Linear Threshold Model (LTM) on Apache Giraph. Use this note when explaining the implementation to **Dr. Anjeneya Swami Kare**. It maps theory to code to demo files.
 
 **Repository:** https://github.com/amanpatel-dev/ltm  
 **Local mirror:** `D:\LTM`
