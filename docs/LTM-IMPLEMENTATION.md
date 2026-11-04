@@ -1,57 +1,90 @@
-# LTM implementation notes (current WSL code)
+# LTM implementation notes
 
 ## Model reminder
 
 In the **Linear Threshold Model**:
 
 - Each vertex is inactive or active.
-- Each inactive vertex `v` has a threshold `θ(v)` (our draft uses a global `0.5`).
+- Each inactive vertex `v` has a threshold `θ(v)` (`credence` in the paper record).
 - Each edge `u → v` carries an influence weight `w(u,v)`.
-- Vertex `v` activates when the **sum of weights from currently active in-neighbours** is at least `θ(v)`.
-- Newly active vertices may influence neighbours in later Giraph supersteps.
+- Vertex `v` activates when the **accumulated weight from active neighbours ≥ θ(v)**.
+- Only **newly activated** vertices send influence (`beliefChanged`).
+- `accWeight` persists across rounds until activation.
 
-This is different from Graph Burning (scheduled fire sources) and from Independent Cascade (one probabilistic attempt per new activation).
+## Two implementations in this repo
+
+| | v1 draft | v2 paper-style |
+|---|---|---|
+| Computation | `LinearThresholdComputation` | `V2LinearThresholdComputation` |
+| Input format | `LongDoubleFloatTextInputFormat` | `V2LtmTextInputFormat` |
+| Vertex value | `DoubleWritable` (0/1) | `V2LtmVertexValue` |
+| Seed / θ | Hard-coded in Java | In the input file |
+| Activation round | Not stored | `activateRound` field |
+| Sample data | `datasets/ltm-four-node/` | `datasets/ltm-four-node-paper/` |
+| Run script | `scripts/run_ltm.sh` | `scripts/run_ltm_v2.sh` |
+
+**Do not modify v1.** It remains the early teaching draft.
 
 ## File locations
 
-| Role | Path in WSL | Path in this repo |
+| Role | Repo path | WSL path (after sync) |
 |---|---|---|
-| LTM computation | `~/giraph/giraph-examples/.../LinearThresholdComputation.java` | `src/LinearThresholdComputation.java` |
-| Custom SSSP | `~/giraph/.../MySSSPComputation.java` | `src/MySSSPComputation.java` |
-| Text input format (id / value / weighted edges) | Giraph examples + repo copy | `src/LongDoubleFloatTextInputFormat.java` |
-| Weighted sample | `~/ltm/graph.txt` | `datasets/ltm-four-node/graph.txt` |
+| v1 LTM | `src/LinearThresholdComputation.java` | `~/giraph/giraph-examples/.../LinearThresholdComputation.java` |
+| v2 LTM | `src/V2LinearThresholdComputation.java` | same `examples/` package |
+| v2 vertex value | `src/V2LtmVertexValue.java` | same |
+| v2 input format | `src/V2LtmTextInputFormat.java` | same |
+| Custom SSSP | `src/MySSSPComputation.java` | same |
 
-## Current draft behaviour
-
-`LinearThresholdComputation` (as synced from WSL on 2026-11-01):
-
-1. **Superstep 0:** vertex `SOURCE_ID = 1` becomes active (`value = 1.0`); others start at `0.0`. The seed sends its outgoing edge weights as text messages.
-2. **Later supersteps:** inactive vertices sum incoming influence messages. If `sum >= THRESHOLD` (`0.5`), they activate and forward their own outgoing edge weights.
-3. Already-active vertices halt without resending.
-
-### Limits of this draft (known)
-
-- Threshold and seed are **hard-coded**, not `-ca` options.
-- Vertex value stores only active/inactive (`1.0` / `0.0`), not activation round.
-- Influence is taken from **outgoing** edge weights on the sender; input graph orientation must match the intended influence direction.
-- No aggregator yet for cascade size / rounds.
-- Not yet compared against a local Python oracle on the four-node sample.
-
-These are the natural next implementation tasks.
-
-## Four-node sample graph
-
-`datasets/ltm-four-node/graph.txt` uses a weighted adjacency text form:
+## v2 paper input line
 
 ```text
-1 2:0.6 3:0.5
-2 1:0.6 4:0.5
-3 1:0.5 4:0.4
-4 2:0.5 3:0.4
+nodeId<TAB>B;credence nb1:w1 nb2:w2 ...;beliefChanged;accWeight
 ```
 
-Meaning: vertex id, then neighbour:weight pairs. Exact Giraph input-format wiring for this file must match whatever reader we bind in the job command (see `scripts/run_ltm.sh` as it evolves).
+Example seed:
 
-## Related foundational class
+```text
+1	1;0.5 2:0.6 3:0.5;true;0.0
+```
 
-`MySSSPComputation` is our custom shortest-path computation (edge weights as distances). It is kept here as part of the shared-algorithm learning path; LTM work does not replace it.
+| Field | Meaning |
+|---|---|
+| `B` | `1` active / `-1` inactive |
+| `credence` | threshold θ |
+| `nb:w` | outgoing influence edges |
+| `beliefChanged` | send influence this superstep if true |
+| `accWeight` | influence collected so far |
+
+`activateRound` is **not** in the input file. The computation sets it: seeds `0`, others the activating superstep, never activated `-1`.
+
+## v2 compute behaviour
+
+1. If `beliefChanged`, send each outgoing edge weight as a `DoubleWritable` message, then clear the flag.
+2. Add all incoming message weights into `accWeight`.
+3. If inactive and `accWeight >= credence`, set `B=1`, `beliefChanged=true`, `activateRound=currentSuperstep`.
+4. Halt only when `beliefChanged` is false (so a newly activated vertex runs again next superstep to send).
+
+## v2 output columns
+
+With `IdWithValueTextOutputFormat`, each line is:
+
+```text
+vertexId	B activateRound credence accWeight beliefChanged
+```
+
+## Hand-checked expectation (four-node paper sample)
+
+| Vertex | activateRound |
+|---|---|
+| 1 | 0 (seed) |
+| 2 | 1 |
+| 3 | 1 |
+| 4 | 2 |
+
+## Rebuild after editing v2 Java in WSL
+
+```bash
+cd ~/giraph
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+mvn -pl giraph-examples -am -DskipTests package
+```

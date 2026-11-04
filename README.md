@@ -39,10 +39,11 @@ https://scis.uohyd.ac.in/~askcs/
 
 ## What is already implemented in WSL
 
-- `LinearThresholdComputation` — first LTM draft (fixed seed `1`, fixed threshold `0.5`)
+- `LinearThresholdComputation` — **v1** LTM draft (fixed seed `1`, fixed threshold `0.5`) — kept unchanged
+- `V2LinearThresholdComputation` + `V2LtmTextInputFormat` + `V2LtmVertexValue` — **v2** paper-style input
 - `MySSSPComputation` — custom single-source shortest paths
-- Weighted four-node LTM sample graph in `datasets/ltm-four-node/`
-- Built examples JAR present under `~/giraph/giraph-examples/target/`
+- Samples: `datasets/ltm-four-node/` (v1) and `datasets/ltm-four-node-paper/` (v2)
+- Built examples JAR present under `~/giraph/giraph-examples/target/` (rebuild after adding v2)
 
 ## Repository layout
 

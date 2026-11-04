@@ -85,28 +85,30 @@ Table 1 (paper): LTM mapper sends weight; reducer **sums** weights; state kept a
 
 ---
 
-## 5. Gap vs our current WSL draft
+## 5. Gap vs v1 draft (still kept)
 
-Current `LinearThresholdComputation`:
+`LinearThresholdComputation` (v1) remains unchanged:
 
 - Hard-coded seed `1` and threshold `0.5`.
-- Vertex value is only `0.0 / 1.0` (no θ, no `accWeight`, no activation round, no `beliefChanged`).
-- Does not keep persistent accumulation the way the paper’s record does.
-- Sample `datasets/ltm-four-node/graph.txt` is only `id nb:w ...`, not the full paper record.
+- Vertex value is only `0.0 / 1.0`.
+- Sample `datasets/ltm-four-node/graph.txt` is only `id nb:w ...`.
 
-**Target Giraph design (aligned with paper):**
+## 6. V2 Giraph classes (paper-aligned)
 
-1. Custom vertex value: `{state, theta, beliefChanged, accWeight, optional activateRound}`.
-2. Edge value: influence weight `w`.
-3. Custom text input format that parses the paper’s record (or an equivalent split: graph + seed file + θ).
-4. Only newly activated vertices send influence.
-5. Aggregator for new activations; stop when cascade stabilizes.
+Implemented in this repository (and synced into WSL `giraph-examples`):
 
----
+| Class | Role |
+|---|---|
+| `V2LtmVertexValue` | Writable: `B`, `credence`, `beliefChanged`, `accWeight`, `activateRound` |
+| `V2LtmTextInputFormat` | Parses the paper tab/semicolon line |
+| `V2LinearThresholdComputation` | LTM round logic; only `beliefChanged` vertices send |
 
-## 6. How this feeds our next coding work
+Sample input: `datasets/ltm-four-node-paper/graph.txt`  
+Runner: `scripts/run_ltm_v2.sh`  
+Details: `docs/LTM-IMPLEMENTATION.md`
 
-1. Define the exact Giraph input line format (paper-compatible or simplified teaching format documented as equivalent).
-2. Rewrite `LinearThresholdComputation` to match Section 3.1 semantics.
-3. Add a small Python preprocessor (like the paper) for toy graphs, then later LiveJournal-scale SNAP prep.
-4. Validate on tiny graphs by hand before large runs.
+## 7. Still ahead
+
+1. Run v2 on HDFS and save `results/` output.
+2. Add a small Python round preview / oracle for the four-node graph.
+3. Later LiveJournal-scale SNAP prep (paper §4.2 style).
