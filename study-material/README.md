@@ -1,5 +1,8 @@
 # Study material
 
-Place LTM theory notes, paper summaries, and Hinglish/English walkthroughs here.
+| Document | Purpose |
+|---|---|
+| **[FACULTY-LTM-IMPLEMENTATION-BRIEF.md](FACULTY-LTM-IMPLEMENTATION-BRIEF.md)** | **Show Sir** — what we implemented, how it runs, ordered demo |
+| [swami-sir-paper-ltm-input-design.md](swami-sir-paper-ltm-input-design.md) | Paper LTM input fields and MapReduce → Giraph mapping |
 
-Useful shared context from the cohort: Graph Burning vs ICM vs LTM vs SIR comparison lives in Group A’s study notes; Group B should keep **LTM-focused** explanations and Giraph message-passing walkthroughs in this folder.
+Group B keeps LTM-focused notes here. Graph Burning study notes live in Group A’s repository.
