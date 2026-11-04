@@ -1,0 +1,4 @@
+superstep 0: newly=[] active_count=1
+superstep 1: newly=[2, 3, 4, 16] active_count=5
+superstep 3: newly=[5, 6, 9, 11, 12, 15] active_count=11
+superstep 5: newly=[7, 8, 10, 13, 14] active_count=16

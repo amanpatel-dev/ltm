@@ -36,7 +36,16 @@ Giraph delivers messages one superstep later, and newly activated nodes send on 
 
 All **16** vertices become active. Full table: `expected-activate-round.tsv`.
 
-## Run
+## Round pictures (local Python)
+
+```bash
+python scripts/show_ltm_rounds.py datasets/ltm-16-node-paper/graph.txt \
+  --out results/ltm-16-node-paper/round-preview --png
+```
+
+PNG frames and tables are saved under [`results/ltm-16-node-paper/round-preview/`](../../results/ltm-16-node-paper/round-preview/).
+
+## Giraph run
 
 ```bash
 hdfs dfs -mkdir -p /user/amani/ltm/v2/input16
@@ -47,4 +56,4 @@ bash /mnt/d/LTM/scripts/run_ltm_v2.sh \
 hdfs dfs -cat /user/amani/ltm/v2/output16/*
 ```
 
-Compare `activateRound` column to `expected-activate-round.tsv`.
+Compare Giraph `activateRound` to `expected-activate-round.tsv` / `round-preview/expected.tsv`.

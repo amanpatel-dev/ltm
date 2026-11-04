@@ -1,5 +1,9 @@
 # Results
 
-Store Giraph job outputs, local oracle comparisons, and short notes per experiment.
+Store Giraph job outputs, local oracle comparisons, round pictures, and short notes per experiment.
 
-Nothing verified LTM run output is checked in yet. After the first successful job, add a dated subfolder and a short README describing input, seed, threshold, and output.
+| Folder | Contents |
+|---|---|
+| [`ltm-16-node-paper/`](ltm-16-node-paper/) | Python round-preview PNGs + expected activation table for the 16-node demo |
+
+Giraph HDFS TSV outputs can be added beside the previews after a verified cluster run.
