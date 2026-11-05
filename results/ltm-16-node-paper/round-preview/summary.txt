@@ -1,4 +1,6 @@
-superstep 0: newly=[] active_count=1
-superstep 1: newly=[2, 3, 4, 16] active_count=5
-superstep 3: newly=[5, 6, 9, 11, 12, 15] active_count=11
-superstep 5: newly=[7, 8, 10, 13, 14] active_count=16
+superstep 0: kind=send-only newly=[] senders=[1] active_count=1
+superstep 1: kind=activate newly=[2, 3, 4, 16] senders=[] active_count=5
+superstep 2: kind=send-only newly=[] senders=[2, 3, 4, 16] active_count=5
+superstep 3: kind=activate newly=[5, 6, 9, 11, 12, 15] senders=[] active_count=11
+superstep 4: kind=send-only newly=[] senders=[5, 6, 9, 11, 12, 15] active_count=11
+superstep 5: kind=activate newly=[7, 8, 10, 13, 14] senders=[] active_count=16

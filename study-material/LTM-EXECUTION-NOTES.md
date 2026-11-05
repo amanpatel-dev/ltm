@@ -100,15 +100,19 @@ B  activateRound  credence  accWeight  beliefChanged
    Point out seed line, `0.5` threshold, mixed weights.
 
 2. **Round pictures** (local Python oracle / visualization)  
-   Folder: [results/ltm-16-node-paper/round-preview/](../results/ltm-16-node-paper/round-preview/)
+   Folder: [results/ltm-16-node-paper/round-preview/](../results/ltm-16-node-paper/round-preview/)  
+   Full weight/θ narrative: [LTM-16-NODE-ROUND-WALKTHROUGH.md](LTM-16-NODE-ROUND-WALKTHROUGH.md)
 
    | File | What to say |
    |---|---|
-   | `round-00.png` | Only seed **1** active |
+   | `round-00.png` | Seed **1** sends (send-only; no new activations) |
    | `round-01.png` | Newly active: **2, 3, 4, 16** |
+   | `round-02.png` | Send-only from `{2,3,4,16}` |
    | `round-03.png` | Newly: **5, 6, 9, 11, 12, 15** |
+   | `round-04.png` | Send-only from `{5,6,9,11,12,15}` |
    | `round-05.png` | Newly: **7, 8, 10, 13, 14** — all 16 active |
 
+   Labels: node text = `id` + `θ`; edge text = influence weight.  
    Colours: **grey** inactive, **orange** newly active this superstep, **red** already active.
 
 3. **Expected activation table**  

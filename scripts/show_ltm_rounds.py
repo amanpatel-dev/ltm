@@ -9,7 +9,7 @@ Simulation matches V2LinearThresholdComputation message timing:
 messages sent in superstep S are received in S+1; a vertex that becomes
 active sets beliefChanged and sends on its next compute call.
 
-Text outputs need only the standard library. PNG frames need::
+PNG frames (optional) show node thresholds and edge weights. Install::
 
     python -m pip install networkx matplotlib
 """
@@ -68,9 +68,9 @@ def parse_paper_ltm(path: Path):
 def simulate_giraph_ltm(adj, state0, credence, belief0, acc0):
     """Return (frames, activate_round, final_acc).
 
-    Each frame is (superstep, newly_active_list, active_set_after).
-    Includes a seed frame at superstep 0, then every superstep with new
-    activations.
+    Each frame is (superstep, newly_active, active_set, senders).
+    Frames include the seed snapshot, activation waves, and send-only
+    supersteps (so round-02 / round-04 appear for demos).
     """
     vertices = sorted(state0)
     state = dict(state0)
@@ -81,15 +81,16 @@ def simulate_giraph_ltm(adj, state0, credence, belief0, acc0):
     mailbox = defaultdict(float)
     frames = []
     active0 = {v for v in vertices if state[v] == 1}
-    frames.append((0, [], set(active0)))
+    # Seed snapshot before SS0 compute (senders will be recorded in SS0).
+    frames.append((0, [], set(active0), []))
 
     for ss in range(0, 100):
+        senders = [u for u in vertices if belief[u]]
         outgoing = defaultdict(float)
-        for u in vertices:
-            if belief[u]:
-                for v, weight in adj[u].items():
-                    outgoing[v] += weight
-                belief[u] = False
+        for u in senders:
+            for v, weight in adj[u].items():
+                outgoing[v] += weight
+            belief[u] = False
 
         newly = []
         for v in vertices:
@@ -101,12 +102,14 @@ def simulate_giraph_ltm(adj, state0, credence, belief0, acc0):
                 activate_round[v] = ss
                 newly.append(v)
 
-        if newly:
-            active = {v for v in vertices if state[v] == 1}
-            if ss == 0:
-                frames[0] = (0, newly, active)
-            else:
-                frames.append((ss, newly, active))
+        active = {v for v in vertices if state[v] == 1}
+        if ss == 0:
+            # Replace seed snapshot with SS0 state after send/receive.
+            frames[0] = (0, newly, active, senders)
+        elif newly or (senders and len(active) < len(vertices)):
+            # Keep send-only frames (2, 4, ...) while some nodes are still
+            # inactive; skip post-cascade send-only noise after all active.
+            frames.append((ss, newly, active, senders))
 
         mailbox = outgoing
         if not any(belief.values()) and not any(mailbox.values()):
@@ -132,10 +135,11 @@ def write_text_outputs(out_dir: Path, activate_round, acc):
 
 def write_summary(out_dir: Path, frames):
     summary_lines = []
-    for ss, newly, active in frames:
+    for ss, newly, active, senders in frames:
+        kind = "activate" if newly else ("send-only" if senders else "seed")
         summary_lines.append(
-            "superstep {}: newly={} active_count={}\n".format(
-                ss, newly, len(active)
+            "superstep {}: kind={} newly={} senders={} active_count={}\n".format(
+                ss, kind, newly, senders, len(active)
             )
         )
     path = out_dir / "summary.txt"
@@ -143,7 +147,7 @@ def write_summary(out_dir: Path, frames):
     return path
 
 
-def draw_pngs(out_dir: Path, adj, frames):
+def draw_pngs(out_dir: Path, adj, credence, frames):
     try:
         import matplotlib
 
@@ -158,15 +162,20 @@ def draw_pngs(out_dir: Path, adj, frames):
         )
 
     graph = nx.Graph()
+    edge_labels = {}
     for u, neighbours in adj.items():
         graph.add_node(u)
-        for v in neighbours:
-            if u <= v:
+        for v, weight in neighbours.items():
+            if u < v:
                 graph.add_edge(u, v)
+                edge_labels[(u, v)] = "{:g}".format(weight)
 
-    pos = nx.spring_layout(graph, seed=42, k=0.9)
+    pos = nx.spring_layout(graph, seed=42, k=1.1)
+    labels = {
+        node: "{}\nθ={:g}".format(node, credence[node]) for node in graph.nodes
+    }
 
-    for ss, newly, active in frames:
+    for ss, newly, active, senders in frames:
         newly_set = set(newly)
         earlier = active - newly_set
         colour_map = []
@@ -178,25 +187,38 @@ def draw_pngs(out_dir: Path, adj, frames):
             else:
                 colour_map.append("#b0b0b0")
 
-        fig, ax = plt.subplots(figsize=(8, 8))
-        nx.draw_networkx_edges(graph, pos, ax=ax, alpha=0.35, width=1.2)
+        fig, ax = plt.subplots(figsize=(11, 11))
+        nx.draw_networkx_edges(graph, pos, ax=ax, alpha=0.4, width=1.3)
         nx.draw_networkx_nodes(
-            graph, pos, ax=ax, node_color=colour_map, node_size=700
+            graph, pos, ax=ax, node_color=colour_map, node_size=950
         )
         nx.draw_networkx_labels(
-            graph, pos, ax=ax, font_size=9, font_color="white"
+            graph, pos, labels=labels, ax=ax, font_size=7, font_color="white"
         )
-        if ss == 0 and not newly:
-            title = "LTM superstep 0 — seed already active: {}".format(
-                sorted(active)
+        nx.draw_networkx_edge_labels(
+            graph,
+            pos,
+            edge_labels=edge_labels,
+            ax=ax,
+            font_size=6,
+            label_pos=0.5,
+        )
+
+        if newly:
+            title = "LTM superstep {} — newly active: {}".format(ss, newly)
+        elif senders:
+            title = "LTM superstep {} — send only from: {}".format(
+                ss, senders
             )
         else:
-            title = "LTM superstep {} — newly active: {}".format(ss, newly)
-        ax.set_title(title)
+            title = "LTM superstep {} — seed active: {}".format(
+                ss, sorted(active)
+            )
+        ax.set_title(title, fontsize=12)
         ax.set_axis_off()
         fig.tight_layout()
         out_path = out_dir / "round-{:02d}.png".format(ss)
-        fig.savefig(out_path, dpi=140)
+        fig.savefig(out_path, dpi=150)
         plt.close(fig)
         print("wrote", out_path)
 
@@ -225,15 +247,15 @@ def main():
     summary = write_summary(args.out, frames)
     print("wrote", expected)
     print("wrote", summary)
-    for ss, newly, active in frames:
+    for ss, newly, active, senders in frames:
         print(
-            "superstep {}: newly={} (|active|={})".format(
-                ss, newly, len(active)
+            "superstep {}: newly={} senders={} (|active|={})".format(
+                ss, newly, senders, len(active)
             )
         )
 
     if args.png:
-        draw_pngs(args.out, adj, frames)
+        draw_pngs(args.out, adj, credence, frames)
 
 
 if __name__ == "__main__":
